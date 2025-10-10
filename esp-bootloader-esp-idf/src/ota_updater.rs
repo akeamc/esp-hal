@@ -2,7 +2,7 @@
 
 use crate::{
     ota::OtaImageState,
-    partitions::{AppPartitionSubType, Error, FlashRegion, PartitionTable},
+    partitions::{AppPartitionSubType, Error, FlashRegion, PartitionEntry, PartitionTable},
 };
 
 /// This can be used as more convenient - yet less flexible, way to do OTA updates.
@@ -142,6 +142,21 @@ where
     pub fn activate_next_partition(&mut self) -> Result<(), Error> {
         let next_slot = self.next_ota_part()?;
         self.with_ota(|mut ota| ota.set_current_app_partition(next_slot))
+    }
+
+    /// Returns the [PartitionEntry] and [AppPartitionSubType] of the partition
+    /// which would be selected by [Self::activate_next_partition].
+    pub fn next_partition(&mut self) -> Result<(PartitionEntry<'_>, AppPartitionSubType), Error> {
+        let next_slot = self.next_ota_part()?;
+
+        if let Some(flash_region) = self
+            .pt
+            .find_partition(crate::partitions::PartitionType::App(next_slot))?
+        {
+            Ok((flash_region, next_slot))
+        } else {
+            Err(Error::Invalid)
+        }
     }
 
     /// Executes the given closure with the partition which would be selected by
