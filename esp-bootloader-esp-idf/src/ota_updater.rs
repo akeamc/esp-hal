@@ -68,6 +68,11 @@ where
         })
     }
 
+    /// Get a reference to the underlying [PartitionTable].
+    pub fn partition_table(&self) -> &PartitionTable<'a> {
+        &self.pt
+    }
+
     fn with_ota<R>(
         &mut self,
         f: impl FnOnce(crate::ota::Ota<'_, F>) -> Result<R, Error>,
